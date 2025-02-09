@@ -102,6 +102,9 @@ int main(int argc, char **argv)
                 case 3:
                     max = nivells[2];
                     break;
+                default:
+                    max = nivells[2];
+                    break;
                 }
 
                 // sprintf(paquet, "[SERVIDOR]: Benvingut %s! Has d'endevinar un número entre %d i %d.\nIntrodueix un número: ", nom, min, max);
