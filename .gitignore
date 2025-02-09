@@ -1,4 +1,5 @@
 # Ignorar archivos llamados client y server
 client
 server
+socket_facade.o
 .vscode
