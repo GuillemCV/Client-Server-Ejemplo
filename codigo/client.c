@@ -5,14 +5,13 @@
 #include <stdbool.h>
 #include <string.h>
 
-/* Inclusio de fitxers .h per als sockets */
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+// Inclusion de la fachada para los sockets
+#include "../socket_facade/socket_facade.h"
 
-#define MIDA_PAQUET 500
+// Librerias para los sockets
+#include <unistd.h>
+#include <arpa/inet.h>
+
 
 /**
  * @brief Funció principal del CLIENT
@@ -28,32 +27,28 @@ int main(int argc, char **argv)
     if (argc == 3)
     {
         int s;                           /* El socket */
-        struct sockaddr_in adr_servidor; /* Adreça i port on hi ha el servidor */
-        socklen_t adr_servidor_mida;     /* Longitud de les dades adreça i port */
-
-        char paquet[MIDA_PAQUET]; /* Per posar les dades a enviar/rebre */
+        struct sockaddr_in adr_servidor; /* Dirección i puerto del servidor */
+        char paquet[TAMAÑO_PAQUETE]; /* Para poner los datos a enviar/recibir */
 
         /* Volem socket d'internet i no orientat a la connexio */
-        s = socket(AF_INET, SOCK_DGRAM, 0);
+        s = get_socket();
 
-        adr_servidor.sin_family = AF_INET;                 /* Socket a Internet */
-        adr_servidor.sin_addr.s_addr = inet_addr(argv[1]); /* Adreça on està el servidor */
-        adr_servidor.sin_port = htons(atoi(argv[2]));      /* Port on escolta el servidor */
+        adr_servidor = get_address(argv[1], atoi(argv[2]));
 
         /* Demanem el nom del usuari i l'enviem al servidor */
         printf("Introdueix el teu nom: ");
         scanf("%s", paquet);
-        sendto(s, paquet, MIDA_PAQUET, 0, (struct sockaddr *)&adr_servidor, sizeof(adr_servidor));
+        send_data(s, paquet, adr_servidor);
 
         /* Rebem el missatge de benvinguda i el mostrem */
-        recvfrom(s, paquet, MIDA_PAQUET, 0, NULL, NULL);
+        receive_data(s, paquet, NULL);
         printf("%s\n", paquet);
 
         /* Demanem la dificultat i l'enviem al servidor*/
         int dificultat;
         scanf("%d", &dificultat);
         sprintf(paquet, "%d", dificultat);
-        sendto(s, paquet, MIDA_PAQUET, 0, (struct sockaddr *)&adr_servidor, sizeof(adr_servidor));
+        send_data(s, paquet, adr_servidor);
         printf("Introdueix un numero:");
 
         int num;
@@ -64,10 +59,10 @@ int main(int argc, char **argv)
             /* Demanem el número al usuari i l'enviem al servidor */
             scanf("%d", &num);
             sprintf(paquet, "%d", num);
-            sendto(s, paquet, MIDA_PAQUET, 0, (struct sockaddr *)&adr_servidor, sizeof(adr_servidor));
+            send_data(s, paquet, adr_servidor);
 
             /* Rebem la resposta del servidor */
-            recvfrom(s, paquet, MIDA_PAQUET, 0, NULL, NULL);
+            receive_data(s, paquet, NULL);
             printf("%s\n", paquet);
 
             /* Si la resposta del servidor conté "Felicitats", hem endevinat el número */

@@ -1,10 +1,13 @@
-all: client server
+all: client server socket_facade.o
 
-client: codigo/client.c
-	gcc -o ejecutables/client codigo/client.c
+socket_facade.o: socket_facade/socket_facade.c socket_facade/socket_facade.h
+	gcc -c socket_facade/socket_facade.c -o socket_facade/socket_facade.o
 
-server: codigo/server.c
-	gcc -o ejecutables/server codigo/server.c
+client: codigo/client.c socket_facade/socket_facade.o
+	gcc codigo/client.c socket_facade/socket_facade.o -o ejecutables/client
+
+server: codigo/server.c socket_facade/socket_facade.o
+	gcc codigo/server.c socket_facade/socket_facade.o -o ejecutables/server
 
 clean:
-	cd ejecutables && rm -f client server
+	rm -f ejecutables/* socket_facade/socket_facade.o

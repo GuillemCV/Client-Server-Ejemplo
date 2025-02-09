@@ -5,14 +5,13 @@
 #include <time.h> /* Per generar números aleatoris */
 #include <stdbool.h>
 
-/* Inclusio de fitxers .h per als sockets */
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+// Inclusio de la fachada para los sockets
+#include "../socket_facade/socket_facade.h"
 
-#define MIDA_PAQUET 500
+// Librerias para los sockets
+#include <unistd.h>
+#include <arpa/inet.h>
+
 
 /**
  * @brief Genera un número aleatori entre min i max
@@ -39,22 +38,16 @@ int main(int argc, char **argv)
         int s;                                          /* El socket */
         struct sockaddr_in socket_servidor;             /* Socket on escolta el servidor */
         struct sockaddr_in adr_client;                  /* Adreça i port des d'on el client envia el paquet */
-        socklen_t adr_client_mida = sizeof(adr_client); /* Longitud de les dades adreça i port */
-
-        char paquet[MIDA_PAQUET]; /* Per posar les dades a enviar/rebre */
+        char paquet[TAMAÑO_PAQUETE]; /* Per posar les dades a enviar/rebre */
 
         /* Volem socket d'internet i no orientat a la connexio */
-        s = socket(AF_INET, SOCK_DGRAM, 0);
+        s = get_socket();
 
         /* Posem les dades del socket del servidor */
-        socket_servidor.sin_family = AF_INET;            /* Socket a Internet */
-        socket_servidor.sin_addr.s_addr = INADDR_ANY;    /* Qualsevol NIC */
-        socket_servidor.sin_port = htons(atoi(argv[1])); /* Port on estarà escoltant el servidor */
+        socket_servidor = get_address(NULL, atoi(argv[1]));
 
         /* Enllacem el socket */
-        int resultat_bind;
-        resultat_bind = bind(s, (struct sockaddr *)&socket_servidor, sizeof(socket_servidor));
-
+        int resultat_bind = bind_socket(s, socket_servidor);
         if (resultat_bind < 0)
         {
             printf("No s'ha pogut enllacar el socket\n");
@@ -77,7 +70,7 @@ int main(int argc, char **argv)
                 printf("Esperant petició d'algun client...\n");
 
                 /* Rebem el nom del client */
-                recvfrom(s, paquet, MIDA_PAQUET, 0, (struct sockaddr *)&adr_client, &adr_client_mida);
+                receive_data(s, paquet, &adr_client);
                 strcpy(nom, paquet);
 
                 printf("Petició rebuda!\n");
@@ -85,10 +78,10 @@ int main(int argc, char **argv)
 
                 /* Enviem el missatge de benvinguda */
                 sprintf(paquet, "[SERVIDOR]: Benvingut %s! Selecciona la dificultat:\n\t\t1) del 1 al %d  \n\t\t2) del 1 al %d   \n\t\t3) del 1 al %d \n", nom, nivells[0], nivells[1], nivells[2]);
-                sendto(s, paquet, MIDA_PAQUET, 0, (struct sockaddr *)&adr_client, adr_client_mida);
+                send_data(s, paquet, adr_client);
 
                 /* Rebem la dificultat escollida pel client*/
-                recvfrom(s, paquet, MIDA_PAQUET, 0, (struct sockaddr *)&adr_client, &adr_client_mida);
+                receive_data(s, paquet, &adr_client);
                 sscanf(paquet, "%d", &dificultat);
                 
                 switch (dificultat)
@@ -117,7 +110,7 @@ int main(int argc, char **argv)
                 {
                     /* Rebem el número del client */
                     printf("Esperant número del client...\n");
-                    recvfrom(s, paquet, MIDA_PAQUET, 0, (struct sockaddr *)&adr_client, &adr_client_mida);
+                    receive_data(s, paquet, &adr_client);
                     sscanf(paquet, "%d", &num_usuari);
 
                     /* Comprovem si s'ha endevinat */
@@ -127,7 +120,7 @@ int main(int argc, char **argv)
                         printf("El client ha endevinat el número!\n");
                         printf("FI DE LA PARTIDA!\n\n\n");
                         sprintf(paquet, "[SERVIDOR]: Felicitats %s! Has endevinat el número!\n", nom);
-                        sendto(s, paquet, MIDA_PAQUET, 0, (struct sockaddr *)&adr_client, adr_client_mida);
+                        send_data(s, paquet, adr_client);
                         endevinat = true;
                     }
                     else
@@ -136,12 +129,12 @@ int main(int argc, char **argv)
                         if (num_random > num_usuari)
                         {
                             sprintf(paquet, "[SERVIDOR]: Ho sento %s! El número ha endevinar és més gran!\nTorna a provar: ", nom);
-                            sendto(s, paquet, MIDA_PAQUET, 0, (struct sockaddr *)&adr_client, adr_client_mida);
+                            send_data(s, paquet, adr_client);
                         }
                         else
                         {
                             sprintf(paquet, "[SERVIDOR]: Ho sento %s! El número ha endevinar és més petit!\nTorna a provar: ", nom);
-                            sendto(s, paquet, MIDA_PAQUET, 0, (struct sockaddr *)&adr_client, adr_client_mida);
+                            send_data(s, paquet, adr_client);
                         }
                     }
                 }

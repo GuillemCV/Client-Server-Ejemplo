@@ -1,3 +1,4 @@
 # Ignorar archivos llamados client y server
 client
 server
+.vscode
