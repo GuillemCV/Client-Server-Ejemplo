@@ -1,11 +1,10 @@
-all:
-	make client servidor
+all: client server
 
-client:
-	gcc -o client client.c
+client: codigo/client.c
+	gcc -o ejecutables/client codigo/client.c
 
-servidor:
-	gcc -o servidor servidor.c
+server: codigo/server.c
+	gcc -o ejecutables/server codigo/server.c
 
 clean:
-	rm -f client servidor
+	cd ejecutables && rm -f client server
