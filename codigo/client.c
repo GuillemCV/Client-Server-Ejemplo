@@ -1,81 +1,74 @@
-/* Inclusio de fitxers .h habituals */
+// Inclusión de archivos .h habituales
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <string.h>
 
-// Inclusion de la fachada para los sockets
+// Inclusión de la fachada para los sockets
 #include "../socket_facade/socket_facade.h"
 
-// Librerias para los sockets
+// Librerías para los sockets
 #include <unistd.h>
 #include <arpa/inet.h>
 
-
 /**
- * @brief Funció principal del CLIENT
+ * @brief Funcion principal del CLIENTE
  *
- * @param argc Número de paràmetres
- * @param argv Paràmetres
- * @param argv[1] Adreça IP del servidor
- * @param argv[2] Port del servidor
+ * @param argc Número de parámetros
+ * @param argv Parámetros
+ * @param argv[1] Dirección IP del servidor
+ * @param argv[2] Puerto del servidor
  */
 int main(int argc, char **argv)
 {
-
     if (argc != 3)
     {
         printf("El número de parámetros no es correcto!\n");
         exit(1);
     }
 
-    int s;                           /* El socket */
-    struct sockaddr_in adr_servidor; /* Dirección i puerto del servidor */
-    char paquet[TAMAÑO_PAQUETE]; /* Para poner los datos a enviar/recibir */
+    int socket_cliente = get_socket();                                           // Creamos el socket del cliente
+    struct sockaddr_in direccion_servidor = get_address(argv[1], atoi(argv[2])); // struct con la información de la dirección del servidor
+    char paquete[TAMAÑO_PAQUETE];                                                // Para poner los datos a enviar/recibir
 
-    /* Volem socket d'internet i no orientat a la connexio */
-    s = get_socket();
+    // Pedimos el nombre del usuario y lo enviamos al servidor
+    printf("Introduce tu nombre: ");
+    scanf("%s", paquete);
+    send_data(socket_cliente, paquete, direccion_servidor);
 
-    adr_servidor = get_address(argv[1], atoi(argv[2]));
+    // Recibimos el mensaje de bienvenida y lo mostramos
+    receive_data(socket_cliente, paquete, NULL);
+    printf("%s\n", paquete);
 
-    /* Demanem el nom del usuari i l'enviem al servidor */
-    printf("Introdueix el teu nom: ");
-    scanf("%s", paquet);
-    send_data(s, paquet, adr_servidor);
+    // Pedimos la dificultad y la enviamos al servidor
+    int dificultad;
+    scanf("%d", &dificultad);
+    sprintf(paquete, "%d", dificultad);
+    send_data(socket_cliente, paquete, direccion_servidor);
+    printf("Introduce un número:");
 
-    /* Rebem el missatge de benvinguda i el mostrem */
-    receive_data(s, paquet, NULL);
-    printf("%s\n", paquet);
-
-    /* Demanem la dificultat i l'enviem al servidor*/
-    int dificultat;
-    scanf("%d", &dificultat);
-    sprintf(paquet, "%d", dificultat);
-    send_data(s, paquet, adr_servidor);
-    printf("Introdueix un numero:");
-
-    int num;
-    bool endevinat = false;
-    while (!endevinat)
+    int numero;
+    bool acertado = false;
+    while (!acertado)
     {
-        /* Demanem el número al usuari i l'enviem al servidor */
-        scanf("%d", &num);
-        sprintf(paquet, "%d", num);
-        send_data(s, paquet, adr_servidor);
+        // Pedimos el número al usuario y lo enviamos al servidor
+        scanf("%d", &numero);
+        sprintf(paquete, "%d", numero);
+        send_data(socket_cliente, paquete, direccion_servidor);
 
-        /* Rebem la resposta del servidor */
-        receive_data(s, paquet, NULL);
-        printf("%s\n", paquet);
+        // Recibimos la respuesta del servidor
+        receive_data(socket_cliente, paquete, NULL);
+        printf("%s\n", paquete);
 
-        /* Si la resposta del servidor conté "Felicitats", hem endevinat el número */
-        if (strstr(paquet, "Felicitats") != NULL)
+        // Si la respuesta del servidor contiene "Felicitaciones", hemos adivinado el número
+        if (strstr(paquete, "Felicitats") != NULL)
         {
-            endevinat = true;
+            acertado = true;
         }
     }
 
-    /* Tanquem el socket */
-    close(s);
+    // Cerramos el socket
+    close(socket_cliente);
     return 0;
 }

@@ -7,6 +7,10 @@
 #define TAMAÑO_PAQUETE 500
 
 /**
+ * Fachada para simplificar el uso de sockets
+ */
+
+/**
  * @brief Función para obtener un socket
  */
 int get_socket();
@@ -17,7 +21,7 @@ int get_socket();
 int bind_socket(int socket, struct sockaddr_in address);
 
 /**
- * @brief Función para crear un socket de servidor
+ * @brief Función para crear un struct sockaddr_in con la dirección y puerto especificados
  */
 struct sockaddr_in get_address(const char *ip, int port);
 
