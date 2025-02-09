@@ -24,61 +24,58 @@
 int main(int argc, char **argv)
 {
 
-    if (argc == 3)
+    if (argc != 3)
     {
-        int s;                           /* El socket */
-        struct sockaddr_in adr_servidor; /* Dirección i puerto del servidor */
-        char paquet[TAMAÑO_PAQUETE]; /* Para poner los datos a enviar/recibir */
+        printf("El número de parámetros no es correcto!\n");
+        exit(1);
+    }
 
-        /* Volem socket d'internet i no orientat a la connexio */
-        s = get_socket();
+    int s;                           /* El socket */
+    struct sockaddr_in adr_servidor; /* Dirección i puerto del servidor */
+    char paquet[TAMAÑO_PAQUETE]; /* Para poner los datos a enviar/recibir */
 
-        adr_servidor = get_address(argv[1], atoi(argv[2]));
+    /* Volem socket d'internet i no orientat a la connexio */
+    s = get_socket();
 
-        /* Demanem el nom del usuari i l'enviem al servidor */
-        printf("Introdueix el teu nom: ");
-        scanf("%s", paquet);
+    adr_servidor = get_address(argv[1], atoi(argv[2]));
+
+    /* Demanem el nom del usuari i l'enviem al servidor */
+    printf("Introdueix el teu nom: ");
+    scanf("%s", paquet);
+    send_data(s, paquet, adr_servidor);
+
+    /* Rebem el missatge de benvinguda i el mostrem */
+    receive_data(s, paquet, NULL);
+    printf("%s\n", paquet);
+
+    /* Demanem la dificultat i l'enviem al servidor*/
+    int dificultat;
+    scanf("%d", &dificultat);
+    sprintf(paquet, "%d", dificultat);
+    send_data(s, paquet, adr_servidor);
+    printf("Introdueix un numero:");
+
+    int num;
+    bool endevinat = false;
+    while (!endevinat)
+    {
+        /* Demanem el número al usuari i l'enviem al servidor */
+        scanf("%d", &num);
+        sprintf(paquet, "%d", num);
         send_data(s, paquet, adr_servidor);
 
-        /* Rebem el missatge de benvinguda i el mostrem */
+        /* Rebem la resposta del servidor */
         receive_data(s, paquet, NULL);
         printf("%s\n", paquet);
 
-        /* Demanem la dificultat i l'enviem al servidor*/
-        int dificultat;
-        scanf("%d", &dificultat);
-        sprintf(paquet, "%d", dificultat);
-        send_data(s, paquet, adr_servidor);
-        printf("Introdueix un numero:");
-
-        int num;
-        bool endevinat = false;
-
-        while (!endevinat)
+        /* Si la resposta del servidor conté "Felicitats", hem endevinat el número */
+        if (strstr(paquet, "Felicitats") != NULL)
         {
-            /* Demanem el número al usuari i l'enviem al servidor */
-            scanf("%d", &num);
-            sprintf(paquet, "%d", num);
-            send_data(s, paquet, adr_servidor);
-
-            /* Rebem la resposta del servidor */
-            receive_data(s, paquet, NULL);
-            printf("%s\n", paquet);
-
-            /* Si la resposta del servidor conté "Felicitats", hem endevinat el número */
-            if (strstr(paquet, "Felicitats") != NULL)
-            {
-                endevinat = true;
-            }
+            endevinat = true;
         }
-
-        /* Tanquem el socket */
-        close(s);
-    }
-    else
-    {
-        printf("El nombre de paràmetres no és el correcte!\n");
     }
 
+    /* Tanquem el socket */
+    close(s);
     return 0;
 }
