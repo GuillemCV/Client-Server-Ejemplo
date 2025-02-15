@@ -10,4 +10,4 @@ server: codigo/server.c socket_facade.o
 	gcc codigo/server.c ejecutables/socket_facade.o -o ejecutables/server
 
 clean:
-	rm -f ejecutables/* ejecutables/socket_facade.o
+	rm -f ejecutables/*
