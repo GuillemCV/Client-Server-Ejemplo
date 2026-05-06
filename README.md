@@ -120,7 +120,7 @@ Ejemplo (servidor en la misma máquina):
 Diagrama de flujo de la ejecución del cliente y el servidor:
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/7375e567-79f4-426c-a795-49d123772f58" alt="Diagrama de flujo cliente-servidor" width="500">
+  <img src="https://github.com/user-attachments/assets/9c9ad9ce-b619-41ef-999b-f30fe6dae334" alt="Diagrama de flujo cliente-servidor" width="500">
 </p>
 
 ---
